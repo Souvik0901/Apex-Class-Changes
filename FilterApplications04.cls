@@ -108,7 +108,7 @@ public without sharing class FilterApplications implements PortalActionAdapter {
                         WITH SYSTEM_MODE];  
     
         if(quickQuotes.size()> 5000){         
-            for(genesis__Applications__c qqValue: quickQuotes){
+            for(genesis__Quick_Quotes__c qqValue: quickQuotes){
                 if (qqValue.CreatedDate >= System.now().addMonths(-3)) {
                     filteredQuickQuotes.add(qqValue);
                 }
@@ -119,7 +119,7 @@ public without sharing class FilterApplications implements PortalActionAdapter {
         if(appList.size()> 5000){             
             for(genesis__Applications__c appValue: appList){
                 if(appValue.CreatedDate >= System.now().addMonths(-3) ){
-                    filteredQuickQuotes.add(appValue);                       
+                    filteredApplication.add(appValue);                       
                 }
             }
             fields.put(APPLICATION_MESSAGE,filteredApplication);        
