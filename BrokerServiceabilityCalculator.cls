@@ -159,7 +159,7 @@ public without sharing class BrokerServiceabilityCalculator implements PortalAct
                 lnWrap.loanAmt = loanAmt;
                 lnWrap.rate = rate;
                 lnWrap.rateType = rateType;
-                lnWrap.term = term ;
+                lnWrap.term = term;
                 lnWrap.brokerFee = brokerFee;
                 Decimal sensitizedEmi = calHandler.truncateNum(getSensitizedEmi(lnWrap));
                 Decimal totalExpense = livingExpense + housingExpense + getLFSCCExpense + sensitizedEmi + otherLoanExpense;
@@ -168,6 +168,8 @@ public without sharing class BrokerServiceabilityCalculator implements PortalAct
                 fields.put(BrokerServiceabilityCalculatorConstants.TOT_INC_RESP,totalIncome);
                 fields.put(BrokerServiceabilityCalculatorConstants.TOT_EXP_RESP,totalExpense);
                 fields.put(BrokerServiceabilityCalculatorConstants.UMI_RESP,umi);
+                Decimal borrowingLimitMethod = calculateBorrowingLimit(rate, term, umi);
+                fields.put(BrokerServiceabilityCalculatorConstants.BORROWING_LIMIT, borrowingLimitMethod);
                 res = FlowfiUtil.getSuccessResponse(BrokerServiceabilityCalculatorConstants.SUCCESS,fields);
 
             } else{
@@ -221,16 +223,25 @@ public without sharing class BrokerServiceabilityCalculator implements PortalAct
             throw new CustomException(formatmsg);
         }
     }
-
-    public Decimal calculateBorrowingLimit(Decimal rate,Decimal term,Decimal umi)
+    
+    public Decimal calculateBorrowingLimit(Decimal rate,Integer term,Decimal umi)
     {
-       Decimal r = rate/12;
-       Decimal t = term*12;
-       Decimal principal = umi -1;
-       Decimal mathpow = math.pow((1-(1/(1+r))),t);
-       Decimal calculatingCurrentValue = (principal * mathpow / (1-1/(1+r)));
+       Double r = rate/1200;
+       Double t = term*12;
+       Double p = umi -1;
+       Double ret = 1/(1+r);
+
+       Decimal pow = p* (1 - math.pow((ret),t))/(1-ret);
+       
+       Decimal calculatingInterest = pow *r;
+
+       Decimal borrowingLimit = pow - calculatingInterest;
+       borrowingLimit.setScale(2,RoundingMode.DOWN);
+
+       return borrowingLimit;
        
     }
+
     /*****************Return response******************/
     public clcommon.Response getPortalResponse(){
         return res;
